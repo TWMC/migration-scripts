@@ -10,8 +10,8 @@ html_doc_path = html_walks_root_path + '/walks_2000.html'
 
 output = "output"
 
-years_to_process = ['2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010']
-
+years_to_process = ['2003', '2004', '2005']
+# years_to_process = ['2006']
 
 # kirby_hike_page_structure = {
 #     "Title": "",
@@ -196,7 +196,7 @@ def parse_index_walk_page(input_file):
             # if month_year not in output:
             #     output[month_year] = []
 
-        elif child.name == 'p':
+        elif child.name == 'P' or child.name == 'p':
             for child_2 in child.children:
                 if child_2.name == 'table':
                     output.extend(parseTable(month_year, child_2))
@@ -222,6 +222,7 @@ def parseTable(month_year, table):
         for ele in cols:
             report_link = ele.find_all('a')
             for link in report_link:
+                print(link['href'])
                 cols_out.append(parse_walk_page(html_walks_root_path + '/' + link['href']))
 
             cols_out.append(ele.text.strip())
@@ -243,8 +244,8 @@ def clean(text):
     if text is None:
         return text
 
-    return text.replace("\xc2\xa0", " ").replace(' ', ' ').replace(' ', ' ').replace('  ', '').replace('\n',
-                                                                                                       ' ').rstrip()
+    return text.replace("\xc2\xa0", " ").replace(' ', ' ').replace(' ', ' ').replace('  ', ' ').replace('\n',
+                                                                                                        ' ').rstrip()
 
 
 def process_year(year_structure):
@@ -254,7 +255,7 @@ def process_year(year_structure):
         kirbiPage = KirbiPageData()
 
         month_year = clean(row[0])
-        if 'TWMC' in month_year:
+        if 'TWMC' in month_year or 'Back to the Home Page' in row:
             continue
         start_day = clean(row[1])
         end_day = clean(row[1])
@@ -289,6 +290,7 @@ def process_year(year_structure):
 
         kirbiPage.days = (end_date - start_date).days + 1
 
+        print(row)
         author_field = clean(row[3])
         if '+' in author_field:
             authors = author_field.split('+')
@@ -312,7 +314,7 @@ def process_year(year_structure):
             kirbiPage.prefecture = str.rstrip(title_split[1][0:-1])
             kirbiPage.title = str.rstrip(title_split[0])
 
-        if type(row[4]) != 'dict':
+        if len(row) > 4 and type(row[4]) != 'dict':
             if 'description' in row[4]:
                 description = row[4]['description']
                 kirbiPage.description = str.rstrip('\n'.join(description))
